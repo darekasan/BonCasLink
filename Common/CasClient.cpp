@@ -9,14 +9,16 @@
 #define TCP_TIMEOUT		1000UL		// 1秒
 
 
-CCasClient::CCasClient(ICasClientHandler *pEventHandler, CSmartSock *pSocket)
+CCasClient::CCasClient(ICasClientHandler *pEventHandler, CSmartSock *pSocket, LPCTSTR lpszReader)
 	: CBcasCard()
 	, m_pSocket(pSocket)
 	, m_pEventHandler(pEventHandler)
 	, m_hClientThread(NULL)
+	, m_lpszReader(NULL)
 {
 	// クライアントスレッド起動
 	DWORD dwThreadID = 0UL;
+	m_lpszReader = lpszReader;
 	if(!(m_hClientThread = ::CreateThread(NULL, 0UL, CCasClient::ClientThreadRaw, (LPVOID)this, 0UL, &dwThreadID))){
 		delete this;
 		}
@@ -37,7 +39,7 @@ void CCasClient::CloseClient(void)
 void CCasClient::ClientThread(void)
 {
 	// カードリーダを開く
-	if(!OpenCard())return;
+	if(!OpenCard(m_lpszReader))return;
 	
 	// 受信バッファ
 	BYTE byDataLen;

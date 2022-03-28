@@ -33,10 +33,12 @@ public:
 	CCasServer(ICasServerHandler *pEventHandler);
 	~CCasServer(void);
 
-	const BOOL OpenServer(const WORD wServerPort);
+	const BOOL OpenServer(const WORD wServerPort, LPCTSTR lpszReader);
 	void CloseServer(void);
 	
 	const DWORD GetClientNum(void) const;
+
+	CBcasCard m_BCasCard;
 
 protected:
 	virtual void OnCasClientEvent(CCasClient *pClient, const DWORD dwEventID, PVOID pParam);
@@ -53,4 +55,5 @@ protected:
 	ClientList m_ClientList;
 	
 	CCriticalLock m_Lock;
+	LPCTSTR m_lpszReader;
 };

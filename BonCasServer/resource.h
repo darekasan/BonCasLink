@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ generated include file.
-// Used by BonCasServer.rc
+// Microsoft Visual C++ で生成されたインクルード ファイル。
+// BonCasServer.rc で使用
 //
 #define IDM_ABOUTBOX                    0x0010
 #define IDD_ABOUTBOX                    100
@@ -10,6 +10,8 @@
 #define IDI_REDCARD                     129
 #define IDI_BLUECARD                    130
 #define IDR_MENU                        130
+#define IDC_COMBO1                      1000
+#define IDC_READER                      1000
 #define IDC_SERVERPORT                  1001
 #define ID_DUMMY_32771                  32771
 #define ID_DUMMY_32772                  32772
@@ -24,7 +26,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1000
+#define _APS_NEXT_CONTROL_VALUE         1001
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

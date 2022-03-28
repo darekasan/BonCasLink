@@ -24,7 +24,7 @@ public:
 		EID_DISCONNECTED	// クライアント切断
 	};
 
-	CCasClient(ICasClientHandler *pEventHandler, CSmartSock *pSocket);
+	CCasClient(ICasClientHandler *pEventHandler, CSmartSock *pSocket, LPCTSTR lpszReader);
 	~CCasClient(void);
 
 	void CloseClient(void);
@@ -38,4 +38,5 @@ protected:
 	CSmartSock *m_pSocket;
 	ICasClientHandler *m_pEventHandler;
 	HANDLE m_hClientThread;
+	LPCTSTR m_lpszReader;
 };

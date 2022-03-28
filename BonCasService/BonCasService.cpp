@@ -5,6 +5,7 @@
 #include "resource.h"
 #include "BonCasService.h"
 #include "CasServer.h"
+#include "BcasCard.h"
 #include "DnpService.h"
 #include <stdio.h>
 
@@ -19,6 +20,7 @@ public :
 	CBonCasServiceModule()
 		: m_CasServer(this)
 		, m_wServerPort(6900U)
+		, m_lpszReader(NULL)
 	{
 		// コンストラクタ
 	}
@@ -97,6 +99,21 @@ public :
 				return false;
 			}
 
+			if (WordCmpI(lpszToken, _T("List")) == 0)
+			{
+				CString str;
+				str.Append(TEXT("カードリーダ名:\n"));
+				CBcasCard bcas;
+				for (DWORD idx = 0; idx < bcas.GetCardReaderNum(); idx++) {
+					
+					str.Append(bcas.GetCardReaderName(idx));
+					str.Append(TEXT("\n"));
+				}
+
+				MessageBox(NULL, str, TEXT("BonCasService"), MB_OK);
+				return false;
+			}
+
 			lpszToken = FindOneOf(lpszToken, szTokens);
 		}
 
@@ -126,9 +143,14 @@ public :
 			::_tmakepath(m_szConfigPath, szDrive, szDir, szFile, TEXT("ini"));
 
 			m_wServerPort = (WORD)::GetPrivateProfileInt(TEXT("General"), TEXT("ServerPort"), m_wServerPort, m_szConfigPath);
+			
+			// 設定ファイルからカードリーダー名を取得
+			TCHAR szValue[128] = {};
+			GetPrivateProfileString(TEXT("General"), TEXT("CardReader"), TEXT(""), szValue, 128, m_szConfigPath);
+			m_lpszReader = szValue;
 
 			// ここにサービスの初期化に必要な処理を書きます
-			m_CasServer.OpenServer(m_wServerPort);
+			m_CasServer.OpenServer(m_wServerPort, m_lpszReader);
 		}
 
 		// サービスのステータスを明示的に RUNNING（実行中）に設定
@@ -146,7 +168,7 @@ public :
 		TCHAR szValue[1024];
 		::_stprintf(szValue, TEXT("%u"), m_wServerPort);
 		::WritePrivateProfileString(TEXT("General"), TEXT("ServerPort"), szValue, m_szConfigPath);
-
+		::WritePrivateProfileString(TEXT("General"), TEXT("CardReader"), m_lpszReader, m_szConfigPath);
 		return __super::PostMessageLoop();
 	}
 
@@ -158,6 +180,7 @@ protected:
 
 	CCasServer m_CasServer;
 	WORD m_wServerPort;
+	LPCTSTR m_lpszReader;
 	TCHAR m_szConfigPath[_MAX_PATH];
 };
 

@@ -11,6 +11,7 @@
 CCasServer::CCasServer(ICasServerHandler *pEventHandler)
 	: m_pEventHandler(pEventHandler)
 	, m_hServerThread(NULL)
+	, m_lpszReader(NULL)
 {
 
 }
@@ -20,11 +21,12 @@ CCasServer::~CCasServer(void)
 	CloseServer();
 }
 
-const BOOL CCasServer::OpenServer(const WORD wServerPort)
+const BOOL CCasServer::OpenServer(const WORD wServerPort, LPCTSTR lpszReader)
 {
+	m_lpszReader = lpszReader;
+
 	// カードリーダ存在チェック
-	CBcasCard BCasCard;
-	if(!BCasCard.OpenCard())return FALSE;
+	if(!m_BCasCard.OpenCard(m_lpszReader))return FALSE;
 
 	// サーバソケットオープン
 	if(!m_pSocket.Listen(wServerPort))return FALSE;
@@ -96,7 +98,7 @@ void CCasServer::ServerThread(void)
 	
 	while(pNewSocket = m_pSocket.Accept()){
 		// クライアントインスタンス生成
-		new CCasClient(this, pNewSocket);
+		new CCasClient(this, pNewSocket, m_lpszReader);
 		}
 }
 

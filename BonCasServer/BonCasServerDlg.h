@@ -38,6 +38,8 @@ protected:
 	HICON m_hIcon;
 	CCasServer m_CasServer;
 	CConfigDword m_dwServerPort;
+	CComboBox m_cbReader;
+	CConfigString m_csReader;
 	CNotifyIcon m_NotifyIcon;
 
 	// 生成された、メッセージ割り当て関数

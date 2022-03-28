@@ -73,34 +73,24 @@ const bool CBcasCard::OpenCard(LPCTSTR lpszReader)
 	CloseCard();
 
 
-	if(lpszReader){
+	if (!lpszReader) return false;
 		// 指定されたカードリーダに対してオープンを試みる
 		DWORD dwActiveProtocol = SCARD_PROTOCOL_UNDEFINED;
 		
 		if(::SCardConnect(m_ScardContext, lpszReader, SCARD_SHARE_SHARED, SCARD_PROTOCOL_T1, &m_hBcasCard, &dwActiveProtocol) != SCARD_S_SUCCESS){
+
 			m_dwLastError = BCEC_CARDOPENERROR;
 			return false;
 			}
-
+		
 		if(dwActiveProtocol != SCARD_PROTOCOL_T1){
 			CloseCard();
 			m_dwLastError = BCEC_CARDOPENERROR;
 			return false;
 			}
-		}
-	else{
-		// 全てのカードリーダに対してオープンを試みる
-		DWORD dwIndex = 0UL;
-	
-		while(GetCardReaderName(dwIndex)){
-			if(OpenCard(GetCardReaderName(dwIndex++)))return true;			
-			}
-		
-		return false;
-		}
 
 	// カード初期化
-	//if(!InitialSetting())return false;
+	// if(!InitialSetting())return false;
 
 	m_dwLastError = BCEC_NOERROR;
 

@@ -326,7 +326,8 @@ static LONG WINAPI SCardStatusWHook(SCARDHANDLE hCard, LPWSTR szReaderName, LPDW
 	return SCARD_S_SUCCESS;
 }
 
-static LONG WINAPI SCardTransmitHook(SCARDHANDLE hCard, LPCSCARD_IO_REQUEST pioSendPci, LPCBYTE pbSendBuffer, DWORD cbSendLength, LPSCARD_IO_REQUEST pioRecvPci, LPBYTE pbRecvBuffer, LPDWORD pcbRecvLength)
+static LONG WINAPI 
+Hook(SCARDHANDLE hCard, LPCSCARD_IO_REQUEST pioSendPci, LPCBYTE pbSendBuffer, DWORD cbSendLength, LPSCARD_IO_REQUEST pioRecvPci, LPBYTE pbRecvBuffer, LPDWORD pcbRecvLength)
 {
 	// サーバにリクエスト送受信
 	CCasProxy *pCasProxy = reinterpret_cast<CCasProxy *>(hCard);

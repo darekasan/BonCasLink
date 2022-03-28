@@ -51,6 +51,7 @@ CBonCasServerDlg::CBonCasServerDlg(CWnd* pParent /*=NULL*/)
 	, m_CasServer(this)
 	, m_NotifyIcon(this)
 	, m_dwServerPort(CONFSECT_GENERAL, TEXT("ServerPort"), 6900UL, 65535UL)
+	, m_csReader(CONFSECT_GENERAL, TEXT("CardReader"), TEXT(""), 255)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -59,6 +60,8 @@ void CBonCasServerDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Text(pDX, IDC_SERVERPORT, m_dwServerPort);
+	DDX_Control(pDX, IDC_READER, m_cbReader);
+	DDX_Text(pDX, IDC_READER, m_csReader);
 	DDV_MinMaxUInt(pDX, m_dwServerPort, 0, 65535);
 }
 
@@ -103,17 +106,40 @@ BOOL CBonCasServerDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
 	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
 
+	m_NotifyIcon.AddIcon(GetSafeHwnd(), ::AfxGetApp()->LoadIcon(IDI_BLUECARD), APP_TITLE TEXT("\r\n接続中のクライアント： 0"));
+
 	// TODO: 初期化をここに追加します。
+	if (m_CasServer.m_BCasCard.GetCardReaderNum()<=0) {
+		::AfxMessageBox(TEXT("サーバの起動に失敗しました。\r\n使用できるカードリーダーが存在しません")); return TRUE;
+	}
+
+	// カードリーダー指定が空のときは一番最初のカードリーダーを選ぶ
+	if (m_csReader.IsEmpty()) {
+		m_csReader = m_CasServer.m_BCasCard.GetCardReaderName(0);
+	}
+	
+	// カードリーダーの列挙
+	for (DWORD idx = 0; idx < m_CasServer.m_BCasCard.GetCardReaderNum(); idx++) {
+		LPCTSTR name = m_CasServer.m_BCasCard.GetCardReaderName(idx);
+		m_cbReader.AddString(name);
+		if(m_csReader.Compare(name)==0) m_cbReader.SetCurSel(idx);
+		
+	}
+	if (m_cbReader.GetCurSel() == CB_ERR) {
+		::AfxMessageBox(TEXT("前回使用したカードリーダーが見つかりませんでした。\r\n最初のカードリーダーを使用します。"));
+		m_cbReader.SetCurSel(0);
+	}
+
+	UpdateData(TRUE);
+	UpdateWindow();
 
 	// サーバオープン
-	if(!m_CasServer.OpenServer((WORD)m_dwServerPort)){
+	if(!m_CasServer.OpenServer(((WORD)m_dwServerPort), (LPCTSTR)m_csReader)) {
 		::AfxMessageBox(TEXT("サーバの起動に失敗しました。\r\nTCPポートまたはカードリーダをオープンできません。"));
 		return TRUE;
 		}
 
-	// タスクトレイにアイコン追加
-	m_NotifyIcon.AddIcon(GetSafeHwnd(), ::AfxGetApp()->LoadIcon(IDI_BLUECARD), APP_TITLE TEXT("\r\n接続中のクライアント： 0"));
-
+	UpdateToolTip();
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
@@ -180,21 +206,20 @@ void CBonCasServerDlg::OnDestroy()
 
 void CBonCasServerDlg::OnOK(void)
 {
-	const DWORD dwPrevPort = m_dwServerPort;
-
-	if(!UpdateData(TRUE))return;
-
-	if((m_dwServerPort != dwPrevPort) && m_CasServer.GetClientNum()){
-		if(::AfxMessageBox(TEXT("接続中のクライアントが存在します。これらを切断して設定を反映しますか？\r\n\r\n「いいえ」を選択した場合は次回起動時に反映されます。"), MB_YESNO) == IDYES){
+	if (!UpdateData(TRUE))return;
+	
+	if(TRUE){
+		if(::AfxMessageBox(TEXT("サーバーを再起動して設定を反映しますか？\r\n\r\n「いいえ」を選択した場合は次回起動時に反映されます。"), MB_YESNO) == IDYES){
 			
 			// サーバ再起動
 			m_CasServer.CloseServer();
-			if(!m_CasServer.OpenServer((WORD)m_dwServerPort)){
+			if(!m_CasServer.OpenServer(((WORD)m_dwServerPort), (LPCTSTR)m_csReader)){
 				::AfxMessageBox(TEXT("サーバの起動に失敗しました。\r\nTCPポートまたはカードリーダをオープンできません。"));
 				return;
 				}
 	
 			}		
+		UpdateToolTip();
 		}
 
 	ShowWindow(SW_HIDE);
@@ -209,7 +234,7 @@ void CBonCasServerDlg::OnCancel(void)
 void CBonCasServerDlg::UpdateToolTip(void)
 {
 	CString csText;
-	csText.Format(TEXT("%s\r\n接続中のクライアント： %ld"), APP_TITLE, m_CasServer.GetClientNum());
+	csText.Format(TEXT("%s\r\n%s\r\n接続中のクライアント： %ld"), APP_TITLE, m_csReader.GetString(), m_CasServer.GetClientNum());
 
 	m_NotifyIcon.SetTip(csText);
 }
